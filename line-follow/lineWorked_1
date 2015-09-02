@@ -1,0 +1,186 @@
+// connect motor controller pins to Arduino digital pins
+// motor right
+int enR = 5;
+int in1 = 22;
+int in2 = 23;
+// motor left
+int enL = 6;
+int in3 = 24;
+int in4 = 25;
+
+//led array
+int s[]={1,2,3,4,5};
+int cut = 50;
+
+
+void setup()
+{
+  // set all the motor control pins to outputs
+  pinMode(enR, OUTPUT);
+  pinMode(enL, OUTPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+  
+  //sensor array
+  for(int i=0;i<5;i++){
+    pinMode(s[i],INPUT);
+  }
+  Serial.begin(9600);
+}
+
+void sensorRead(){
+//sensor print in serial monotor
+  for(int i=0;i<5;i++){
+    s[i]=i+1;
+    Serial.print(analogRead(s[i]));
+    Serial.print(" ");
+}
+Serial.println();
+}
+
+void forward()
+{
+  
+  
+  // turn on motor A (left)
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  // set speed to 100 out of possible range 0~255
+  analogWrite(enR, 100);
+  // turn on motor B (right)
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+  // set speed to 100 out of possible range 0~255
+  analogWrite(enL, 100);
+
+}
+
+void turnRight(){
+  //Stop right motor
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+  // set speed to 200 out of possible range 0~255
+  analogWrite(enR, 0);
+  //Run left motor
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+  // set speed to 200 out of possible range 0~255
+  analogWrite(enL, 100);
+  
+  if (analogRead(s[4])>cut && analogRead(s[3])>cut && analogRead(s[2])<cut && analogRead(s[0])>cut){
+    
+    Serial.println("Right---->Forward");
+  
+  }
+  else{
+    Serial.println("Right  ***right********");
+    turnRight();
+    
+  }
+
+
+}
+
+void turnLeft(){
+  //Run right motor
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  // set speed to 200 out of possible range 0~255
+  analogWrite(enR, 100);
+  //Stop left motor
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+  // set speed to 200 out of possible range 0~255
+  analogWrite(enL, 0);
+  if (analogRead(s[0])>cut && analogRead(s[1])>cut && analogRead(s[2])<cut && analogRead(s[4])>cut){
+    
+    Serial.println("LEft---->Forward");
+  
+  }
+  else{
+    Serial.println("LEft  ***LEFT********");
+    turnLeft();
+    
+  }
+
+}
+void left(){ //tern left to correct the error simple line following
+  //Run right motor
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  // set speed to 200 out of possible range 0~255
+  analogWrite(enR, 100);
+  //Stop left motor
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+  // set speed to 200 out of possible range 0~255
+  analogWrite(enL, 0);
+}
+
+void right(){ //tern right to correct the error simple line following
+  //Stop right motor
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+  // set speed to 200 out of possible range 0~255
+  analogWrite(enR, 0);
+  //Run left motor
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+  // set speed to 200 out of possible range 0~255
+  analogWrite(enL, 100);
+}
+
+void stop(){
+  //Stop right motor
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+  // set speed to 200 out of possible range 0~255
+  analogWrite(enR, 100);
+  //Run left motor
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+  // set speed to 200 out of possible range 0~255
+  analogWrite(enL, 100);
+}
+
+//to stop a motor it is enough to set enable to 0 or set both pins to same stage (low or high)
+
+ //1. analogWrite(enR, 0);
+
+//2.digitalWrite(in1, LOW);
+  //digitalWrite(in2, LOW);
+
+//3.digitalWrite(in1, HIGH);
+  //digitalWrite(in2, HIGH);
+
+
+void loop()
+{
+  
+    if(analogRead(s[0])<cut && analogRead(s[1])<cut && analogRead(s[2])<cut && analogRead(s[4])>cut){
+      Serial.println("turnLEft  ***********");
+      turnLeft(); 
+    }
+    
+    else if(analogRead(s[4])<cut && analogRead(s[3])<cut && analogRead(s[2])<cut && analogRead(s[0])>cut){
+      Serial.println("turnRight  ***********");
+      turnRight();  
+    }
+    
+    else if(analogRead(s[1])<cut && analogRead(s[2])<cut && analogRead(s[3])>cut){
+      Serial.println("LEft  ***********"); //ERROR CORRECTION
+      left();
+    } 
+   
+   else if(analogRead(s[3])<cut && analogRead(s[2])<cut && analogRead(s[1])>cut){
+     Serial.println("Right  ***********");// ERROR CORRECTION
+     right();
+     
+   }
+    Serial.println("forward  ***********");
+    forward();
+    
+    
+}
